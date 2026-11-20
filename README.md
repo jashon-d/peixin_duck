@@ -83,19 +83,19 @@
 > 自底向上推进。每个阶段标有**验收标准**（可验证，不空谈）。
 > 状态：⬜ 未开始 / 🟡 进行中 / ✅ 完成
 
-### 🟡 阶段 0：侦察与逆向 —— 摸通策略部署链路
+### ✅ 阶段 0：侦察与逆向 —— 摸通策略部署链路
 
 - **目标**：在板子到来之前，先把 `microduck_rl → ONNX → 推理` 的链路跑通，吃透策略契约。
 - **做什么**：
   1. 读 `export.py` / `infer_policy.py`，搞清导出与推理的代码现状
   2. 吃透 61 维 observation 契约的每一位含义
   3. 吃透 14 维 action 契约和 BAM 电压控制律机理
-  4. 用 `zero`/`random` dummy agent 导出 ONNX，跑通推理冒烟（不依赖真训练）
+  4. 用 smoke test 的 checkpoint（`model_4.pt`）导出 ONNX，跑通推理冒烟（验证链路形状，不依赖正式训练）
   5. 产出策略部署契约文档，作为后续写 robotd 的接口规格
   6. 板子到了：SSH 上去抓舵机/IMU 通信波形，逆向官方协议
 - **验收标准**：能口述 61D obs 的段位含义 + 14D action 到舵机的变换链路；dummy ONNX 能推理出 14D 输出且形状正确。
 - **学到什么**：sim2real 契约思维、ONNX 导出/推理、normalizer bake-in 机理。
-- **状态**：🟡 进行中（61D/14D 契约已理清，待跑冒烟 + 产文档）
+- **状态**：✅ 完成（2026-11-20 冒烟通过：ONNX 导出成功、推理验证 `61→14`、normalizer bake-in 确认；契约已冻结见 [docs/policy_deployment_contract.md](docs/policy_deployment_contract.md)）
 
 ### ⬜ 阶段 1：驱动层 —— C 语言写用户态驱动
 
@@ -217,14 +217,15 @@ action (14D, ~[-1,1])
 
 ## 七、当前进度
 
-- **进行中**：阶段 0 —— 策略部署链路（61D/14D 契约已理清）
-- **下一步**：跑 dummy ONNX 导出 + 推理冒烟测试 → 产出契约文档
+- **已完成**：阶段 0 —— 策略部署链路冒烟通过，契约文档已冻结
+- **下一步**：板子到货后，SSH 上去抓舵机/IMU 通信波形 → 启动阶段 1 驱动层
 - **阻塞项**：板子在路上（阶段 0 的波形逆向、阶段 1+ 需等板子）
 
 ---
 
 ## 八、相关资源
 
+- [策略部署契约文档](docs/policy_deployment_contract.md)（阶段 0 产出 · 冻结接口规格书）
 - [peixin.md — RL 训练手册](file:///home/wang/MicroDuck/peixin.md)（阶段 0/6 的训练侧参考）
 - [泰山派 MicroDuck 镜像页](https://wiki.lckfb.com/zh-hans/tspi-rk3566/project-case/microduck/image.html)
 - `microduck_rl` 仓库：`/home/wang/MicroDuck/microduck_rl`（Pollen Robotics 开源训练栈）
@@ -237,3 +238,4 @@ action (14D, ~[-1,1])
 | 日期 | 阶段 | 内容 | 证据 |
 |------|------|------|------|
 | 2026-11-20 | 立项 | 确立自底向上全链路自建路线，写 README 总谱 | 本文件 |
+| 2026-11-20 | 阶段 0 | ONNX 导出+推理冒烟通过（61→14 验证），冻结策略部署契约文档 | `docs/policy_deployment_contract.md` + `/tmp/dummy_velocity.onnx` 实测 |
